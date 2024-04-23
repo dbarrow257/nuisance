@@ -43,7 +43,7 @@ public:
 private:
   TMatrixD* fSmearingMatrix;
 
-  enum Distribution { kDeltaPT };
+  enum Distribution { kDeltaPT, kCosPlPr, kCosMuPsum };
   Distribution fDist;
 };
 

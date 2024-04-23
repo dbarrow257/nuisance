@@ -28,12 +28,26 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
   fSettings = LoadSampleSettings(samplekey);
   std::string name = fSettings.GetS("name");
 
+  std::string DataFileName = "/MicroBooNE/CC1Mu2p/NuisanceInput.root";
+
+  std::string ObjPrefix;
+
   if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPT_nu")) {
     fDist = kDeltaPT;
-    fSettings.SetXTitle("");
-    fSettings.SetYTitle("");
-  }
-  else {
+    ObjPrefix = "recop_{t}";
+    fSettings.SetXTitle("DeltaPT");
+    fSettings.SetYTitle("Xsec");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosPlPr_nu")) {
+    fDist = kCosPlPr;
+    ObjPrefix = "recocos(P_{L},P_{R})";
+    fSettings.SetXTitle("CosPlPr");
+    fSettings.SetYTitle("Xsec");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosMuPsum_nu")) {
+    fDist = kCosMuPsum;
+    ObjPrefix = "recocos(Mu,P_{sum})";
+    fSettings.SetXTitle("CosMuPsum");
+    fSettings.SetYTitle("Xsec");
+  } else {
     assert(false);
   }
 
@@ -51,17 +65,16 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
   fSettings.DefineAllowedSpecies("numu");
   FinaliseSampleSettings();
 
-  /*
-  std::string DataHistName = "";
-  std::string CovMatName = "";
-  std::string ACMatName = "";
+  std::string DataHistName = ObjPrefix+"/"+ObjPrefix+"_DataHist";
+  std::string CovMatName = ObjPrefix+"/"+ObjPrefix+"_CovMat";
+  std::string ACMatName = ObjPrefix+"/"+ObjPrefix+"_AC";
 
   // Load data --------------------------------------------------------- 
   std::string inputFile = FitPar::GetDataBase()+DataFileName;
   SetDataFromRootFile(inputFile, DataHistName);
   ScaleData(1E-38);
 
-  fScaleFactor = GetEventHistogram()->Integral("width") / (double(fNEvents) * TotalIntegratedFlux()); // Standard differential cross section per nucleon 
+  fScaleFactor = 40.0*GetEventHistogram()->Integral("width") / (double(fNEvents) * TotalIntegratedFlux()); // Standard differential cross section per nucleon 
   fScaleFactor *= 1E-38; // Convert units
 
   SetCovarFromRootFile(inputFile, CovMatName);
@@ -83,9 +96,7 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
       (*fSmearingMatrix)(i,j) = hSmearMat_TH2->GetBinContent(i+1, j+1);
     }
   }
-
   inputRootFile->Close();
-  */
 
   // Final setup ------------------------------------------------------
   FinaliseMeasurement();
@@ -93,50 +104,91 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
 
 
 bool MicroBooNE_CC1mu2p0pi_XSec_1D_nu::isSignal(FitEvent* event) {
-  //return SignalDef::MicroBooNE::isCC1ENp(event, EnuMin, EnuMax);
-  throw;
+  return SignalDef::MicroBooNE::isCC1mu2p0pi(event, EnuMin, EnuMax);
 };
 
 
 void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::FillEventVariables(FitEvent* event) {
   fXVar = -999.;
+  if (!isSignal(event)) {return;}
 
-  if (fDist == kDeltaPT) {
+  // Deal with Muon ------------------------------------------------------
+
+  std::vector<FitParticle*> MuonParticles = event->GetAllFSMuon();
+  if (MuonParticles.size() != 1) {
+    std::cerr << "Number of muons returned not equal to 1 despite explicitly requesting 1 muon" << std::endl;
+    throw;
+  }
+  FitParticle* Muon = MuonParticles[0];
+
+  // Deal with Protons ------------------------------------------------------
+  
+  std::vector<FitParticle*> ProtonParticles = event->GetAllFSProton();
+
+  std::vector<int> ProtonIndices;
+  std::vector<double> ProtonMomentum;
+  for (int iPart=0;iPart<ProtonParticles.size();iPart++) {
+    if (ProtonParticles[iPart]->P3().Mag() > 300. && ProtonParticles[iPart]->P3().Mag() < 1000.) {
+      ProtonIndices.push_back(iPart);
+      ProtonMomentum.push_back(ProtonParticles[iPart]->P3().Mag());
+    }
+  }
+  if (ProtonMomentum.size() != 2) {
+    std::cerr << "Didn't find two protons with momentum in threshold!" << std::endl;
+    std::cerr << "ProtonMomentum.size():" << ProtonMomentum.size() << std::endl;
+    std::cerr << "event->NumFSProton():" << event->NumFSProton() << std::endl;
     throw;
   }
 
-  throw;
+  int LeadingProtonIndex = -1;
+  int RecoilProtonIndex = -1;
+  if (ProtonMomentum[0] > ProtonMomentum[1]) {
+    LeadingProtonIndex = ProtonIndices[0];
+    RecoilProtonIndex = ProtonIndices[1];
+  } else {
+    LeadingProtonIndex = ProtonIndices[1];
+    RecoilProtonIndex = ProtonIndices[0];
+  }
+
+  TVector3 ProtonMomentumSum = ProtonParticles[LeadingProtonIndex]->P3()+ProtonParticles[RecoilProtonIndex]->P3();
+
+  // Calculate the variables ------------------------------------------------------
+
+  if (fDist == kDeltaPT) {
+    TVector3 MuonVectorTrans;
+    MuonVectorTrans.SetXYZ(Muon->P3().X(),Muon->P3().Y(),0.);
+
+    TVector3 ProtonVectorTrans;
+    ProtonVectorTrans.SetXYZ(ProtonMomentumSum.X(),ProtonMomentumSum.Y(),0.);
+
+    TVector3 PtVector = MuonVectorTrans + ProtonVectorTrans;
+    fXVar = PtVector.Mag()/1000.;
+  } else if (fDist == kCosPlPr) {
+    fXVar = std::cos(ProtonParticles[LeadingProtonIndex]->P3().Angle(ProtonParticles[RecoilProtonIndex]->P3()));
+  } else if (fDist == kCosMuPsum) {
+    fXVar = std::cos(Muon->P3().Angle(ProtonMomentumSum));
+  }
+
 }
 
 void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::ConvertEventRates() {
   // Do standard conversion
   Measurement1D::ConvertEventRates();
 
-  /*
-  // Apply Weiner-SVD additional smearing Ac - Needs to be applied on 'event rate' units then converted back to 'xsec units'
   int nBins = fMCHist->GetNbinsX();
-  double Flux_CV = 6699174026.68;
-  double nTargets = 4.240685683288815e+31;
 
-  // First convert to event rate units
-  TVectorD MC_EVRUnits(nBins);
+  // First convert to TVectorD
+  TVectorD MC_PreSmear(nBins);
   for (int iBin=0;iBin<nBins;iBin++) {
-    MC_EVRUnits(iBin) = fMCHist->GetBinContent(iBin+1) * nTargets * Flux_CV * fMCHist->GetXaxis()->GetBinWidth(iBin+1);
+    MC_PreSmear(iBin) = fMCHist->GetBinContent(iBin+1);
   }
 
   // Apply smearing
-  TVectorD SmearedMC_EVRUnits = (*fSmearingMatrix) * MC_EVRUnits;
-
-  // Convert back to xsec units
-  TVectorD SmearedMC_XSecUnits(nBins);
-  for (int iBin=0;iBin<nBins;iBin++) {
-    SmearedMC_XSecUnits(iBin) = SmearedMC_EVRUnits(iBin) / (nTargets * Flux_CV * fMCHist->GetXaxis()->GetBinWidth(iBin+1));
-  }
+  TVectorD MC_PostSmear = (*fSmearingMatrix) * MC_PreSmear;
 
   // Then copy results back to histogram
   for (int iBin=0;iBin<nBins;iBin++) {
-    fMCHist->SetBinContent(iBin+1, SmearedMC_XSecUnits(iBin));
+    fMCHist->SetBinContent(iBin+1, MC_PostSmear(iBin));
   }
-  */
 }
 

@@ -1104,7 +1104,9 @@ MeasurementBase *CreateSample(nuiskey samplekey) {
 		 !name.compare("MicroBooNE_CC1ENp_XSec_1DOpeningAngle_nu") ||
 		 !name.compare("MicroBooNE_CC1ENp_XSec_1DTrueVisibleEnergy_nu")) {
 	return (new MicroBooNE_CC1ENp_XSec_1D_nu(samplekey));
-      } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPT_nu")) {
+      } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPT_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosPlPr_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosMuPsum_nu")) {
 	return (new MicroBooNE_CC1mu2p0pi_XSec_1D_nu(samplekey));
       } else
 #endif
