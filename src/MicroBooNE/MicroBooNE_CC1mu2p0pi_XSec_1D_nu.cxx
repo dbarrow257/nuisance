@@ -180,7 +180,7 @@ void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::ConvertEventRates() {
   // First convert to TVectorD
   TVectorD MC_PreSmear(nBins);
   for (int iBin=0;iBin<nBins;iBin++) {
-    MC_PreSmear(iBin) = fMCHist->GetBinContent(iBin+1);
+    MC_PreSmear(iBin) = fMCHist->GetBinContent(iBin+1)*fMCHist->GetBinWidth(iBin+1);
   }
 
   // Apply smearing
@@ -188,7 +188,7 @@ void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::ConvertEventRates() {
 
   // Then copy results back to histogram
   for (int iBin=0;iBin<nBins;iBin++) {
-    fMCHist->SetBinContent(iBin+1, MC_PostSmear(iBin));
+    fMCHist->SetBinContent(iBin+1, MC_PostSmear(iBin)/fMCHist->GetBinWidth(iBin+1));
   }
 }
 
