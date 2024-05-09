@@ -35,18 +35,18 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
   if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPT_nu")) {
     fDist = kDeltaPT;
     ObjPrefix = "recop_{t}";
-    fSettings.SetXTitle("DeltaPT");
-    fSettings.SetYTitle("Xsec");
+    fSettings.SetXTitle("#delta P_{T} [GeV]");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/GeV/Ar]");
   } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosPlPr_nu")) {
     fDist = kCosPlPr;
     ObjPrefix = "recocos(P_{L},P_{R})";
-    fSettings.SetXTitle("CosPlPr");
-    fSettings.SetYTitle("Xsec");
+    fSettings.SetXTitle("cos(#gamma_{#vec{P_{L}},#vec{P_{R}}})");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
   } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosMuPsum_nu")) {
     fDist = kCosMuPsum;
     ObjPrefix = "recocos(Mu,P_{sum})";
-    fSettings.SetXTitle("CosMuPsum");
-    fSettings.SetYTitle("Xsec");
+    fSettings.SetXTitle("cos(#gamma_{#vec{P_{#mu}},#vec{P_{sum}}})");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
   } else {
     assert(false);
   }
