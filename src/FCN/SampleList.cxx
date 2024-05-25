@@ -1108,7 +1108,16 @@ MeasurementBase *CreateSample(nuiskey samplekey) {
 		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosPlPr_nu") ||
 		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosMuPsum_nu") ||
 		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaAlphaT_nu") ||
-		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPhiT_nu") ) {
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPhiT_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DMuonMomentum_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DMuonCosTheta_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DMuonPhi_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DLeadingProtonMomentum_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DLeadingProtonCosTheta_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DLeadingProtonPhi_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DRecoilProtonMomentum_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DRecoilProtonCosTheta_nu") ||
+		 !name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DRecoilProtonPhi_nu") ) {
 	return (new MicroBooNE_CC1mu2p0pi_XSec_1D_nu(samplekey));
       } else
 #endif

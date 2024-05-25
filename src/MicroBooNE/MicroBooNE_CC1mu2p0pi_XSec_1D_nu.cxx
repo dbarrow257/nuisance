@@ -57,6 +57,51 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
     ObjPrefix = "reco_delta_phi_t";
     fSettings.SetXTitle("#delta #phi_{T}");
     fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DMuonMomentum_nu")) {  
+    fDist = kMuonMomentum;
+    ObjPrefix = "reco_muon_momentum";
+    fSettings.SetXTitle("P_{#mu}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/GeV/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DMuonCosTheta_nu")) {  
+    fDist = kMuonCosTheta;
+    ObjPrefix = "reco_muon_costheta";
+    fSettings.SetXTitle("cos(#theta_{#mu})");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DMuonPhi_nu")) {  
+    fDist = kMuonPhi;
+    ObjPrefix = "reco_muon_phi";
+    fSettings.SetXTitle("#phi_{#mu}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DLeadingProtonMomentum_nu")) {  
+    fDist = kLeadingProtonMomentum;
+    ObjPrefix = "reco_leading_proton_momentum";
+    fSettings.SetXTitle("P_{#mu}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/GeV/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DLeadingProtonCosTheta_nu")) {  
+    fDist = kLeadingProtonCosTheta;
+    ObjPrefix = "reco_leading_proton_costheta";
+    fSettings.SetXTitle("cos(#theta_{#mu})");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DLeadingProtonPhi_nu")) {  
+    fDist = kLeadingProtonPhi;
+    ObjPrefix = "reco_leading_proton_phi";
+    fSettings.SetXTitle("#phi_{#mu}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DRecoilProtonMomentum_nu")) {  
+    fDist = kRecoilProtonMomentum;
+    ObjPrefix = "reco_recoil_proton_momentum";
+    fSettings.SetXTitle("P_{#mu}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/GeV/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DRecoilProtonCosTheta_nu")) {  
+    fDist = kRecoilProtonCosTheta;
+    ObjPrefix = "reco_recoil_proton_costheta";
+    fSettings.SetXTitle("cos(#theta_{#mu})");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DRecoilProtonPhi_nu")) {  
+    fDist = kRecoilProtonPhi;
+    ObjPrefix = "reco_recoil_proton_phi";
+    fSettings.SetXTitle("#phi_{#mu}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
   } else {
       assert(false);
   }
@@ -191,8 +236,26 @@ void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::FillEventVariables(FitEvent* event) {
     fXVar = std::cos(ProtonParticles[LeadingProtonIndex]->P3().Angle(ProtonParticles[RecoilProtonIndex]->P3()));
   } else if (fDist == kCosMuPsum) {
     fXVar = std::cos(Muon->P3().Angle(ProtonMomentumSum));
+  } else if (fDist == kMuonMomentum) {
+    fXVar = Muon->P3().Mag();
+  } else if (fDist == kMuonCosTheta) {
+    fXVar = std::cos(Muon->P3().Theta());
+  } else if (fDist == kMuonPhi) {
+    fXVar = Muon->P3().Phi();
+  } else if (fDist == kLeadingProtonMomentum) {
+    fXVar = ProtonParticles[LeadingProtonIndex]->P3().Mag();
+  } else if (fDist == kLeadingProtonCosTheta) {
+    fXVar = std::cos(ProtonParticles[LeadingProtonIndex]->P3().Theta());
+  } else if (fDist == kLeadingProtonPhi) {
+    fXVar = ProtonParticles[LeadingProtonIndex]->P3().Phi();
+  } else if (fDist == kRecoilProtonMomentum) {
+    fXVar = ProtonParticles[RecoilProtonIndex]->P3().Mag();
+  } else if (fDist == kRecoilProtonCosTheta) {
+    fXVar = std::cos(ProtonParticles[RecoilProtonIndex]->P3().Theta());
+  } else if (fDist == kRecoilProtonPhi) {
+    fXVar = ProtonParticles[RecoilProtonIndex]->P3().Phi();
   }
-
+  
 }
 
 void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::ConvertEventRates() {
