@@ -34,21 +34,31 @@ MicroBooNE_CC1mu2p0pi_XSec_1D_nu::MicroBooNE_CC1mu2p0pi_XSec_1D_nu(nuiskey sampl
 
   if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPT_nu")) {
     fDist = kDeltaPT;
-    ObjPrefix = "recop_{t}";
+    ObjPrefix = "reco_delta_p_t";
     fSettings.SetXTitle("#delta P_{T} [GeV]");
     fSettings.SetYTitle("Differential Cross Section [cm^{2}/GeV/Ar]");
   } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosPlPr_nu")) {
     fDist = kCosPlPr;
-    ObjPrefix = "recocos(P_{L},P_{R})";
+    ObjPrefix = "reco_cos(P_L,P_R)";
     fSettings.SetXTitle("cos(#gamma_{#vec{P_{L}},#vec{P_{R}}})");
     fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
   } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DCosMuPsum_nu")) {
     fDist = kCosMuPsum;
-    ObjPrefix = "recocos(Mu,P_{sum})";
+    ObjPrefix = "reco_cos(Mu,P_sum)";
     fSettings.SetXTitle("cos(#gamma_{#vec{P_{#mu}},#vec{P_{sum}}})");
     fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaAlphaT_nu")) {
+    fDist = kDeltaAlphaT;
+    ObjPrefix = "reco_delta_alpha_t";
+    fSettings.SetXTitle("#delta #alpha_{T}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
+  } else if (!name.compare("MicroBooNE_CC1mu2p0pi_XSec_1DDeltaPhiT_nu")) {
+    fDist = kDeltaPhiT;
+    ObjPrefix = "reco_delta_phi_t";
+    fSettings.SetXTitle("#delta #phi_{T}");
+    fSettings.SetYTitle("Differential Cross Section [cm^{2}/Ar]");
   } else {
-    assert(false);
+      assert(false);
   }
 
   // Sample overview ---------------------------------------------------
@@ -152,17 +162,31 @@ void MicroBooNE_CC1mu2p0pi_XSec_1D_nu::FillEventVariables(FitEvent* event) {
 
   TVector3 ProtonMomentumSum = ProtonParticles[LeadingProtonIndex]->P3()+ProtonParticles[RecoilProtonIndex]->P3();
 
+  // Calculate some TKI variables ------------------------------------------------------
+
+  TVector3 MuonVectorTrans;
+  MuonVectorTrans.SetXYZ(Muon->P3().X(),Muon->P3().Y(),0.);
+  double MuonVectorTransMag = MuonVectorTrans.Mag();
+  
+  TVector3 ProtonVectorTrans;
+  ProtonVectorTrans.SetXYZ(ProtonMomentumSum.X(),ProtonMomentumSum.Y(),0.);
+  double ProtonVectorTransMag = ProtonVectorTrans.Mag();
+  
+  TVector3 PtVector = MuonVectorTrans + ProtonVectorTrans;
+  double fPt = PtVector.Mag();
+  
   // Calculate the variables ------------------------------------------------------
 
   if (fDist == kDeltaPT) {
-    TVector3 MuonVectorTrans;
-    MuonVectorTrans.SetXYZ(Muon->P3().X(),Muon->P3().Y(),0.);
-
-    TVector3 ProtonVectorTrans;
-    ProtonVectorTrans.SetXYZ(ProtonMomentumSum.X(),ProtonMomentumSum.Y(),0.);
-
-    TVector3 PtVector = MuonVectorTrans + ProtonVectorTrans;
-    fXVar = PtVector.Mag()/1000.;
+    fXVar = fPt/1000.;
+  } else if (fDist == kDeltaAlphaT) {
+    fXVar = TMath::ACos( (- MuonVectorTrans * PtVector) / ( MuonVectorTransMag * fPt ) ) * 180./TMath::Pi();
+    if (fXVar > 180.) { fXVar -= 180.; }
+    if (fXVar < 0.) { fXVar += 180.; }
+  } else if (fDist == kDeltaPhiT) {
+    fXVar = TMath::ACos( (- MuonVectorTrans * ProtonVectorTrans) / ( MuonVectorTransMag * ProtonVectorTransMag ) ) * 180./TMath::Pi();
+    if (fXVar > 180.) { fXVar -= 180.; }
+    if (fXVar < 0.) { fXVar += 180.; }
   } else if (fDist == kCosPlPr) {
     fXVar = std::cos(ProtonParticles[LeadingProtonIndex]->P3().Angle(ProtonParticles[RecoilProtonIndex]->P3()));
   } else if (fDist == kCosMuPsum) {
